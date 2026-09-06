@@ -34,6 +34,43 @@ type ProductData = {
   [key: string]: any;
 };
 
+/** Safely pull the real product object out of any nesting the API may return */
+function unwrapProduct(json: any): ProductData | null {
+  if (!json || typeof json !== "object") return null;
+
+  // Common shapes:
+  // 1. { data: product }
+  // 2. { data: { data: product } }  (old nested RapidAPI shape)
+  // 3. { product: product }
+  // 4. product itself
+  const candidates = [
+    json.data?.data,
+    json.data,
+    json.product,
+    json,
+  ];
+
+  for (const candidate of candidates) {
+    if (
+      candidate &&
+      typeof candidate === "object" &&
+      !Array.isArray(candidate) &&
+      (candidate.product_title || candidate.asin || candidate.product_photo)
+    ) {
+      return candidate as ProductData;
+    }
+  }
+
+  // Fallback: return first object that looks like a product
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
+      return candidate as ProductData;
+    }
+  }
+
+  return null;
+}
+
 export function AsinCheckerClient({
   searchParams,
 }: {
@@ -75,7 +112,12 @@ export function AsinCheckerClient({
         }
 
         const json = await res.json();
-        const product = json.data || json.product || json;
+        const product = unwrapProduct(json);
+
+        if (!product) {
+          throw new Error("No product data returned from API");
+        }
+
         setData(product);
 
         if (asin) {
