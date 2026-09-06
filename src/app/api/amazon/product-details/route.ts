@@ -21,12 +21,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid ASIN format" }, { status: 400 });
     }
 
-    const data = await getProductDetails({
+    const response = await getProductDetails({
       asin: asin.toUpperCase(),
       country,
     });
 
-    return NextResponse.json({ data, asin: asin.toUpperCase() });
+    // RapidAPI wraps the product in { status, request_id, data: product }
+    // Normalize so the client always receives the actual product object
+    const product =
+      response?.data && typeof response.data === "object" && !Array.isArray(response.data)
+        ? response.data
+        : response;
+
+    // Guard against error status from RapidAPI
+    if (response?.status === "ERROR" || response?.error) {
+      const message =
+        response?.error?.message || response?.message || "RapidAPI returned an error";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
+
+    return NextResponse.json({
+      data: product,
+      asin: asin.toUpperCase(),
+    });
   } catch (error) {
     console.error("[product-details]", error);
     return NextResponse.json(
