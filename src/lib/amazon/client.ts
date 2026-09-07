@@ -21,6 +21,21 @@ interface RequestOptions {
   retries?: number;
 }
 
+export interface AmazonApiError {
+  message?: string;
+  code?: string;
+  [key: string]: unknown;
+}
+
+export interface AmazonProductDetailsResponse<T = Record<string, unknown>> {
+  status?: string;
+  request_id?: string;
+  data?: T;
+  error?: AmazonApiError | string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 async function amazonFetch<T>(
   endpoint: string,
   params: Record<string, string | number | boolean | undefined> = {},
@@ -100,8 +115,8 @@ export async function getProductDetails(params: {
   asin: string;
   country?: CountryCode;
   language?: string;
-}) {
-  return amazonFetch("/product-details", {
+}): Promise<AmazonProductDetailsResponse> {
+  return amazonFetch<AmazonProductDetailsResponse>("/product-details", {
     asin: params.asin,
     country: params.country ?? "US",
     language: params.language,
