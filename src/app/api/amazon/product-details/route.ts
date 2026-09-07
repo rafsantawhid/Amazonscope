@@ -35,8 +35,11 @@ export async function POST(req: NextRequest) {
 
     // Guard against error status from RapidAPI
     if (response?.status === "ERROR" || response?.error) {
-      const message =
-        response?.error?.message || response?.message || "RapidAPI returned an error";
+      const errorMessage =
+        typeof response?.error === "string"
+          ? response.error
+          : response?.error?.message;
+      const message = errorMessage || response?.message || "RapidAPI returned an error";
       return NextResponse.json({ error: message }, { status: 502 });
     }
 
