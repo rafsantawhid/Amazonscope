@@ -40,7 +40,7 @@ function unwrapProduct(json: any): AnyRecord | null {
 function first(obj: AnyRecord | null | undefined, keys: string[], fallback: any = undefined) {
   if (!obj) return fallback;
   for (const key of keys) {
-    const value = key.split(".").reduce((v, k) => v?.[k], obj);
+    const value: any = key.split(".").reduce((v, k) => v?.[k], obj);
     if (value !== undefined && value !== null && value !== "") return value;
   }
   return fallback;
@@ -227,7 +227,7 @@ export function AsinCheckerClient({ searchParams }: { searchParams: Promise<{ as
           </Section>
 
           <Section title="Competition" icon={<Users className="h-4 w-4" />}>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Sellers" value={display(sellers, offerRows.length ? offerRows.length : "Not available")} /><Metric label="Number of offers" value={offerRows.length || "Not available"} /><Metric label="Buy Box" value={display(first(product, ["buy_box_seller", "buy_box_owner", "buy_box"]), "Not available")} /><Metric label="FBA / FBM" value={display(first(product, ["fulfillment", "fulfillment_type", "buy_box_fulfillment"]), "See offers")} /></div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Sellers" value={display(sellers, offerRows.length ? String(offerRows.length) : "Not available")} /><Metric label="Number of offers" value={offerRows.length || "Not available"} /><Metric label="Buy Box" value={display(first(product, ["buy_box_seller", "buy_box_owner", "buy_box"]), "Not available")} /><Metric label="FBA / FBM" value={display(first(product, ["fulfillment", "fulfillment_type", "buy_box_fulfillment"]), "See offers")} /></div>
             <div className="mt-5"><OfferTable offers={offers} /></div>
           </Section>
 
